@@ -97,8 +97,8 @@ def get_account_costs(client, accounts, account_names):
     today = datetime.date.today()
     last_month_start, last_month_end = get_previous_months(today)
     two_months_ago_start, two_months_ago_end = get_previous_months(last_month_start)
-    three_months_ago_start, three_months_ago_end = get_previous_months(two_months_ago_start) 
-    four_months_ago_start, four_months_ago_end = get_previous_months(three_months_ago_start) 
+    three_months_ago_start, three_months_ago_end = get_previous_months(two_months_ago_start)
+    four_months_ago_start, four_months_ago_end = get_previous_months(three_months_ago_start)
     five_months_ago_start, five_months_ago_end = get_previous_months(four_months_ago_start)
 
     costs_last_month = get_cost(client, accounts, last_month_start, last_month_end)
@@ -137,7 +137,7 @@ def get_account_costs(client, accounts, account_names):
     return account_costs
 
 
-def display_cost_changes(client, accounts, account_costs, last_month_start, last_month_end, two_months_ago_start, two_months_ago_end, three_months_ago_start, four_months_ago_start, five_months_ago_start):
+def display_cost_changes(client, accounts, account_costs, last_month_start, two_months_ago_start, three_months_ago_start, four_months_ago_start, five_months_ago_start):
 
     prev_last_month_start = last_month_start  # relativedelta(months=1)
     prev_two_months_ago_start = two_months_ago_start  # relativedelta(months=1)
@@ -158,7 +158,11 @@ def display_cost_changes(client, accounts, account_costs, last_month_start, last
     ]
 
     table_data = []
-    sorted_account_costs = sorted(account_costs.items(), key=lambda x: x[1].get('last_month', 0) - x[1].get('two_months_ago', 0), reverse=True)
+    sorted_account_costs = sorted(
+        account_costs.items(),
+        key=lambda x: x[1].get('last_month', 0) - x[1].get('two_months_ago', 0),
+        reverse=True
+    )
 
     significant_increase_accounts = []
     longer_term_increase_accounts = []
@@ -209,14 +213,23 @@ def display_cost_changes(client, accounts, account_costs, last_month_start, last
         else:
             total_pct = 0
 
-        increase_percentage = (last_month_cost - two_months_ago_cost) / two_months_ago_cost * 100 if two_months_ago_cost != 0 else 0
+        increase_percentage = (
+            (last_month_cost - two_months_ago_cost) / two_months_ago_cost * 100
+            if two_months_ago_cost != 0 else 0
+        )
         increase_amount = last_month_cost - two_months_ago_cost
 
         if two_months_ago_cost > 1500:
             significant_increase_accounts.append((account_id, account_name, increase_amount, increase_percentage))
 
         # Array with the last 4 months' costs.
-        costs_array = np.array([five_months_ago_cost, four_months_ago_cost, three_months_ago_cost, two_months_ago_cost, last_month_cost])
+        costs_array = np.array([
+            five_months_ago_cost,
+            four_months_ago_cost,
+            three_months_ago_cost,
+            two_months_ago_cost,
+            last_month_cost
+            ])
 
         # Calculate the slope of the best-fit line
         slope = np.polyfit(range(len(costs_array)), costs_array, 1)[0]
@@ -254,12 +267,15 @@ def display_cost_changes(client, accounts, account_costs, last_month_start, last
             print(f"{account_id:>12}  {account_name:<20}")
 
             prev_month_costs_by_service, last_month_costs_by_service = get_costs_by_service(client, account_id)
-            cost_differences = {service: last_month_costs_by_service.get(service, 0) - prev_month_costs_by_service.get(service, 0) for service in last_month_costs_by_service}
+            cost_differences = {
+                service: last_month_costs_by_service.get(service, 0) - prev_month_costs_by_service.get(service, 0)
+                for service in last_month_costs_by_service
+            }
 
             top_2_cost_increases = sorted(cost_differences.items(), key=lambda x: x[1], reverse=True)[:2]
             for service, increase_amount in top_2_cost_increases:
                 print(f"{service} (Amount: +${increase_amount:,.2f})")
-            print(f"")
+            print()
 
     if longer_term_increase_accounts:
         print("Longer-term (5 months) upwards trend detected for the following account(s):")
@@ -269,7 +285,7 @@ def display_cost_changes(client, accounts, account_costs, last_month_start, last
 
 
 def main():
-    # Add your AWS account numbers and aliases here. 
+    # Add your AWS account numbers and aliases here.
     accounts = {
         '<ACCOUNT_NUMBER>': '<ACCOUNT_ALIAS>',
         '<ACCOUNT_NUMBER>': '<ACCOUNT_ALIAS>',
@@ -286,7 +302,17 @@ def main():
     four_months_ago_start, four_months_ago_end = get_previous_months(three_months_ago_start)
     five_months_ago_start, five_months_ago_end = get_previous_months(four_months_ago_start)
 
-    display_cost_changes(client, accounts, account_costs, last_month_start, last_month_end, two_months_ago_start, two_months_ago_end, three_months_ago_start, four_months_ago_start, five_months_ago_start)
+    display_cost_changes(
+        client, accounts,
+        account_costs,
+        last_month_start,
+        last_month_end,
+        two_months_ago_start,
+        two_months_ago_end,
+        three_months_ago_start,
+        four_months_ago_start,
+        five_months_ago_start
+    )
 
 
 if __name__ == '__main__':
