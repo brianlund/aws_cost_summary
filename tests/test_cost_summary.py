@@ -5,8 +5,6 @@ from aws_cost_summary import display_cost_changes
 import io
 import sys
 
-print(sys.path)
-
 
 class TestCostMonitor(unittest.TestCase):
 
